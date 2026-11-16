@@ -61,7 +61,7 @@ canvas {
   transition: opacity 0.25s ease;
 }
 
-.glass-overlay.hidden {
+.glass-overlay.hidden, .hidden {
   opacity: 0;
   pointer-events: none;
 }
@@ -187,25 +187,27 @@ input[type="checkbox"] {
   border-radius: 14px;
   padding: 8px 14px;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   z-index: 10;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  max-width: 96vw;
+  overflow-x: auto;
 }
 
 .tool-btn {
   background: transparent;
   border: none;
   color: var(--text);
-  padding: 8px 12px;
+  padding: 8px 11px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   white-space: nowrap;
 }
 
@@ -216,18 +218,20 @@ input[type="checkbox"] {
   width: 1px;
   height: 24px;
   background: var(--border);
-  margin: 0 4px;
+  margin: 0 3px;
+  flex-shrink: 0;
 }
 
 .colors {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .color-dot {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   cursor: pointer;
   border: 2px solid transparent;
@@ -244,6 +248,115 @@ input[type="color"] {
   border: none;
   background: none;
   cursor: pointer;
+}
+
+/* Легенда линий */
+.legend-panel {
+  position: fixed;
+  top: 76px;
+  left: 16px;
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  min-width: 190px;
+  max-width: 250px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 9;
+  transition: opacity 0.2s ease;
+}
+
+.legend-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+
+.legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.legend-item:hover {
+  background: var(--hover);
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Панель маршрутизатора */
+.route-panel {
+  position: fixed;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  padding: 12px 16px;
+  min-width: 280px;
+  max-width: 90vw;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.2);
+  z-index: 9;
+  transition: opacity 0.2s ease;
+}
+
+.route-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.route-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.route-close:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.route-details {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
 }
 
 .bottom-bar {

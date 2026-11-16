@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Metro Project — Конструктор схем метро</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <!-- Стартовое меню (Glassmorphism) -->
   <div id="mainMenu" class="glass-overlay">
     <div class="glass-card">
-      <div class="badge">Alpha 0.2</div>
+      <div class="badge">Alpha 0.3</div>
       <h1 class="menu-title">🚇 Metro Project</h1>
       <p class="menu-subtitle">Песочница для проектирования схем метрополитена</p>
       <div class="menu-buttons">
@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  <!-- Окно настроек -->
+  <!-- Модальное окно настроек -->
   <div id="settingsModal" class="glass-overlay hidden">
     <div class="glass-card settings-card">
       <h2 class="settings-title">⚙ Настройки холста</h2>
@@ -31,7 +31,7 @@
           <span>Размер ячейки сетки</span>
           <strong id="gridSizeVal">40 px</strong>
         </div>
-        <input type="range" id="gridSizeInput" min="20" max="80" step="5" value="40" />
+        <input type="range" id="gridSizeInput" min="20" max="80" step="5" value="40">
       </div>
 
       <div class="setting-item">
@@ -39,22 +39,27 @@
           <span>Толщина веток метро</span>
           <strong id="lineWidthVal">8 px</strong>
         </div>
-        <input type="range" id="lineWidthInput" min="4" max="16" step="1" value="8" />
+        <input type="range" id="lineWidthInput" min="4" max="16" step="1" value="8">
       </div>
 
       <div class="setting-item row">
         <span>Показывать сетку на фоне</span>
-        <input type="checkbox" id="showGridInput" checked />
+        <input type="checkbox" id="showGridInput" checked>
+      </div>
+
+      <div class="setting-item row">
+        <span>Привязка к сетке и углам (45°/90°)</span>
+        <input type="checkbox" id="snapGridInput" checked>
       </div>
 
       <div class="setting-item row">
         <span>Умные подписи (автоповорот 45°)</span>
-        <input type="checkbox" id="smartLabelsInput" checked />
+        <input type="checkbox" id="smartLabelsInput" checked>
       </div>
 
       <div class="setting-item row">
         <span>Тёмная тема оформления</span>
-        <input type="checkbox" id="darkThemeInput" />
+        <input type="checkbox" id="darkThemeInput">
       </div>
 
       <button id="closeSettingsBtn" class="primary-btn" style="margin-top: 12px;">Готово</button>
@@ -63,44 +68,59 @@
 
   <!-- Верхняя панель инструментов -->
   <div class="toolbar">
-    <button id="backToMenuBtn" class="tool-btn">☰ Меню</button>
+    <button class="tool-btn" id="backToMenuBtn" title="В главное меню">☰ Меню</button>
     <div class="divider"></div>
-
     <button class="tool-btn active" data-tool="line">🚇 Ветка / Станция</button>
+    <button class="tool-btn" data-tool="transfer">🚶 Переход</button>
+    <button class="tool-btn" data-tool="route">🧭 Маршрут</button>
     <button class="tool-btn" data-tool="river">🌊 Река</button>
     <button class="tool-btn" data-tool="move">✋ Перемещение</button>
     <button class="tool-btn" data-tool="erase">🗑 Ластик</button>
-
     <div class="divider"></div>
-
     <div class="colors">
-      <div class="color-dot active" data-color="#ef4444" style="background: #ef4444;"></div>
-      <div class="color-dot" data-color="#3b82f6" style="background: #3b82f6;"></div>
-      <div class="color-dot" data-color="#22c55e" style="background: #22c55e;"></div>
-      <div class="color-dot" data-color="#eab308" style="background: #eab308;"></div>
-      <div class="color-dot" data-color="#a855f7" style="background: #a855f7;"></div>
-      <div class="color-dot" data-color="#ec4899" style="background: #ec4899;"></div>
-      <input type="color" id="customColor" value="#ec4899" title="Свой цвет" />
+      <div class="color-dot active" data-color="#ef4444" style="background:#ef4444" title="Красная"></div>
+      <div class="color-dot" data-color="#3b82f6" style="background:#3b82f6" title="Синяя"></div>
+      <div class="color-dot" data-color="#22c55e" style="background:#22c55e" title="Зелёная"></div>
+      <div class="color-dot" data-color="#eab308" style="background:#eab308" title="Жёлтая"></div>
+      <div class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Фиолетовая"></div>
+      <div class="color-dot" data-color="#ec4899" style="background:#ec4899" title="Розовая"></div>
+      <input type="color" id="customColor" value="#ec4899" title="Свой цвет">
     </div>
-
     <div class="divider"></div>
-
-    <button id="undoBtn" class="tool-btn">↩ Назад</button>
-    <button id="inGameSettingsBtn" class="tool-btn" title="Настройки">⚙</button>
+    <button class="tool-btn active" id="snapToggleBtn" title="Привязка к сетке и углам (G)">🧲 Сетка</button>
+    <button class="tool-btn" id="undoBtn" title="Отменить (Ctrl+Z)">↩ Назад</button>
+    <button class="tool-btn" id="inGameSettingsBtn" title="Настройки">⚙</button>
   </div>
 
-  <!-- Нижняя панель -->
+  <!-- Легенда линий (левый верхний угол) -->
+  <div id="legendPanel" class="legend-panel hidden">
+    <div class="legend-header">
+      <span>🗺 Легенда линий</span>
+    </div>
+    <div id="legendList" class="legend-list"></div>
+  </div>
+
+  <!-- Карточка результата маршрутизатора -->
+  <div id="routePanel" class="route-panel hidden">
+    <div class="route-header">
+      <strong id="routeTitle">🧭 Маршрут</strong>
+      <button id="closeRouteBtn" class="route-close" title="Сбросить маршрут">✕</button>
+    </div>
+    <div id="routeDetails" class="route-details"></div>
+  </div>
+
+  <!-- Нижняя панель подсказок и экспорта -->
   <div class="bottom-bar">
-    <div class="hint-box">
-      Клик — станция и ветка (45°/90°/180°). Правый клик — отцепить ветку. Двойной клик по станции — имя. Колесико — зум.
+    <div class="hint-box" id="hintBox">
+      Клик — станция/ветка. Переход — клик по двум станциям. Маршрут — старт и финиш. Двойной клик — имя.
     </div>
     <div class="actions-box">
-      <button id="exportPngBtn" class="tool-btn">🖼 PNG</button>
-      <button id="exportJsonBtn" class="tool-btn" title="Сохранить проект в JSON">💾 JSON</button>
-      <button id="importJsonBtn" class="tool-btn" title="Загрузить проект из JSON">📂 Импорт</button>
-      <input type="file" id="importJsonInput" accept=".json,application/json" style="display: none;" />
+      <button class="tool-btn" id="exportPngBtn" title="Скачать картинку">🖼 PNG</button>
+      <button class="tool-btn" id="exportJsonBtn" title="Сохранить проект в JSON">💾 JSON</button>
+      <button class="tool-btn" id="importJsonBtn" title="Загрузить проект из JSON">📂 Импорт</button>
+      <input type="file" id="importJsonInput" accept=".json,application/json" style="display:none">
       <div class="divider"></div>
-      <button id="clearBtn" class="tool-btn">🧹 Очистить</button>
+      <button class="tool-btn" id="clearBtn" style="color:#ef4444">🧹 Очистить</button>
     </div>
   </div>
 
