@@ -3,11 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Metro Sandbox — Конструктор схем метро</title>
+  <title>Metro Project — Конструктор схем метро</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Стартовый экран (Glassmorphism) -->
+  <div class="glass-overlay" id="mainMenu">
+    <div class="glass-card">
+      <div class="badge">Alpha 0.2</div>
+      <h1 class="menu-title">🚇 Metro Project</h1>
+      <p class="menu-subtitle">Песочница для проектирования схем метрополитена</p>
+      <div class="menu-buttons">
+        <button class="primary-btn" id="playBtn">▶ Играть</button>
+        <button class="secondary-btn" id="openSettingsBtn">⚙️ Настройки</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Окно настроек (Glassmorphism) -->
+  <div class="glass-overlay hidden" id="settingsModal">
+    <div class="glass-card settings-card">
+      <h2 class="settings-title">⚙️ Настройки холста</h2>
+
+      <div class="setting-item">
+        <div class="setting-header">
+          <span>Размер ячейки сетки</span>
+          <strong id="gridSizeVal">40 px</strong>
+        </div>
+        <input type="range" id="gridSizeInput" min="20" max="80" step="5" value="40">
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-header">
+          <span>Толщина веток метро</span>
+          <strong id="lineWidthVal">8 px</strong>
+        </div>
+        <input type="range" id="lineWidthInput" min="4" max="14" step="1" value="8">
+      </div>
+
+      <div class="setting-item row">
+        <span>Показывать сетку на фоне</span>
+        <input type="checkbox" id="showGridInput" checked>
+      </div>
+
+      <div class="setting-item row">
+        <span>Тёмная тема оформления</span>
+        <input type="checkbox" id="darkThemeInput">
+      </div>
+
+      <button class="primary-btn" id="closeSettingsBtn" style="margin-top: 12px;">Готово</button>
+    </div>
+  </div>
+
+  <!-- Панель инструментов редактора -->
   <div class="toolbar">
+    <button class="tool-btn" id="backToMenuBtn" title="В главное меню">☰ Меню</button>
+    <div class="divider"></div>
     <button class="tool-btn active" data-tool="line">🚇 Ветка / Станция</button>
     <button class="tool-btn" data-tool="river">🌊 Река</button>
     <button class="tool-btn" data-tool="move">✋ Перемещение</button>
@@ -24,7 +75,7 @@
     </div>
     <div class="divider"></div>
     <button class="tool-btn" id="undoBtn">↩️ Назад</button>
-    <button class="tool-btn" id="themeBtn">🌓 Тема</button>
+    <button class="tool-btn" id="inGameSettingsBtn" title="Настройки">⚙️</button>
   </div>
 
   <canvas id="canvas"></canvas>
