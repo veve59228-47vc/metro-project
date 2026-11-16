@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metro Sandbox — Конструктор схем метро</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toolbar">
+    <button class="tool-btn active" data-tool="line">🚇 Ветка / Станция</button>
+    <button class="tool-btn" data-tool="river">🌊 Река</button>
+    <button class="tool-btn" data-tool="move">✋ Перемещение</button>
+    <button class="tool-btn" data-tool="erase">🗑️ Ластик</button>
+    <div class="divider"></div>
+    <div class="colors">
+      <div class="color-dot active" style="background:#ef4444" data-color="#ef4444"></div>
+      <div class="color-dot" style="background:#3b82f6" data-color="#3b82f6"></div>
+      <div class="color-dot" style="background:#22c55e" data-color="#22c55e"></div>
+      <div class="color-dot" style="background:#f59e0b" data-color="#f59e0b"></div>
+      <div class="color-dot" style="background:#a855f7" data-color="#a855f7"></div>
+      <div class="color-dot" style="background:#06b6d4" data-color="#06b6d4"></div>
+      <input type="color" id="customColor" value="#ec4899" title="Свой цвет">
+    </div>
+    <div class="divider"></div>
+    <button class="tool-btn" id="undoBtn">↩️ Назад</button>
+    <button class="tool-btn" id="themeBtn">🌓 Тема</button>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="bottom-bar">
+    <div class="hint-box">Клик — станция и ветка (45°/90°/180°). Правый клик — отцепить ветку. Двойной клик по станции — имя. Колесико — зум.</div>
+    <div class="actions-box">
+      <button class="tool-btn" id="exportPngBtn">🖼️ PNG</button>
+      <button class="tool-btn" id="clearBtn">🧹 Очистить</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+
