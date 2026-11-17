@@ -1,6 +1,6 @@
 # 🚇 Metro Project — Beta
 
-[![▶ ИГРАТЬ ОНЛАЙН](https://shields.io)](https://github.io)
+[![▶ ИГРАТЬ ОНЛАЙН](https://shields.io)]([https://github.io](https://veve59228-47vc.github.io/metro-project/))
 
 Минималистичный веб-конструктор для проектирования схем метрополитена в браузере.
 
