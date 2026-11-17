@@ -47,7 +47,7 @@ canvas {
   cursor: crosshair;
 }
 
-/* Эффект матового стекла для меню и настроек */
+/* Эффект матового стекла для меню, настроек и сохранений */
 .glass-overlay {
   position: fixed;
   inset: 0;
@@ -74,7 +74,7 @@ canvas {
   border-radius: 24px;
   padding: 32px 38px;
   width: 90%;
-  max-width: 430px;
+  max-width: 440px;
   max-height: 90vh;
   overflow-y: auto;
   text-align: center;
@@ -141,7 +141,7 @@ canvas {
 
 /* Настройки */
 .settings-card { text-align: left; }
-.settings-title { font-size: 22px; margin-bottom: 18px; text-align: center; }
+.settings-title { font-size: 22px; margin-bottom: 14px; text-align: center; }
 
 .setting-item {
   margin-bottom: 14px;
@@ -180,6 +180,86 @@ canvas {
   display: flex;
   justify-content: space-between;
 }
+
+/* Вкладка сохранений и пресетов */
+.saves-card { text-align: left; max-width: 480px; }
+.saves-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.saves-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--hover);
+  border: 1px solid var(--glass-border);
+}
+
+.save-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.save-name {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.save-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.save-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.save-load-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-load-btn:hover { background: var(--accent-hover); }
+
+.save-del-btn {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.save-del-btn:hover { background: rgba(239, 68, 68, 0.12); }
 
 input[type="range"] {
   width: 100%;

@@ -19,6 +19,51 @@ darkTheme: false,
 bgOpacity: 0.45,
 bgScale: 1
 };
+const DEMO_PRESET_ID = 'builtin_demo_v1';
+const DEMO_STATE = {
+stations: Array.of(
+{ id: 1001, x: -240, y: 0, name: 'Западная' },
+{ id: 1002, x: -80, y: 0, name: 'Центральная' },
+{ id: 1003, x: 80, y: 0, name: 'Речной вокзал' },
+{ id: 1004, x: 240, y: 0, name: 'Восточная' },
+{ id: 1005, x: -80, y: -160, name: 'Северная' },
+{ id: 1006, x: -80, y: 160, name: 'Южная' },
+{ id: 1007, x: 80, y: -120, name: 'Парк Победы' },
+{ id: 1008, x: 80, y: 40, name: 'Набережная' },
+{ id: 1009, x: 240, y: 160, name: 'Университет' }
+),
+segments: Array.of(
+{ id: 2001, from: 1001, to: 1002, color: '#ef4444', cp: null },
+{ id: 2002, from: 1002, to: 1003, color: '#ef4444', cp: null },
+{ id: 2003, from: 1003, to: 1004, color: '#ef4444', cp: null },
+{ id: 2004, from: 1005, to: 1002, color: '#3b82f6', cp: null },
+{ id: 2005, from: 1002, to: 1006, color: '#3b82f6', cp: null },
+{ id: 2006, from: 1007, to: 1008, color: '#22c55e', cp: null },
+{ id: 2007, from: 1008, to: 1009, color: '#22c55e', cp: { x: 110, y: 150 } }
+),
+transfers: Array.of(
+{ id: 3001, from: 1003, to: 1008 }
+),
+rivers: Array.of(
+Array.of(
+{ x: 160, y: -220 },
+{ x: 150, y: -60 },
+{ x: 175, y: 70 },
+{ x: 140, y: 230 }
+)
+),
+lineNames: {
+'#ef4444': 'Красная линия',
+'#3b82f6': 'Синяя линия',
+'#22c55e': 'Зелёная линия'
+},
+lineCodes: {
+'#ef4444': '1',
+'#3b82f6': '2',
+'#22c55e': '3'
+},
+bgImage: null
+};
 let state = {
 stations: Array.of(),
 segments: Array.of(),
@@ -28,6 +73,7 @@ lineNames: {},
 lineCodes: {},
 bgImage: null
 };
+let savedPresets = Array.of();
 let history = Array.of();
 let settings = Object.assign({}, DEFAULT_SETTINGS);
 let cam = { x: innerWidth / 2, y: innerHeight / 2, zoom: 1 };
@@ -50,7 +96,6 @@ let rulerStart = null;
 let rulerEnd = null;
 let rulerLocked = false;
 let renderedBadges = Array.of();
-// Состояние анимации-хронологии (Таймлапс) и записи видео
 let timelapse = {
 active: false,
 recording: false,
@@ -62,6 +107,9 @@ holdFrames: 0,
 recorder: null,
 chunks: Array.of()
 };
+function cloneData(obj) {
+return JSON.parse(JSON.stringify(obj));
+}
 function syncBgImageObject(dataUrl) {
 if (!dataUrl) {
 bgImgObj = null;
@@ -105,6 +153,139 @@ localStorage.setItem('metro_v1', JSON.stringify(liteState));
 } catch (err) {}
 }
 }
+function buildBuiltinDemoEntry() {
+return {
+id: DEMO_PRESET_ID,
+name: '🚇 Демо-схема (Стандарт)',
+builtin: true,
+updatedAt: 'Встроенный пресет',
+state: cloneData(DEMO_STATE)
+};
+}
+function persistPresets() {
+try {
+localStorage.setItem('metro_presets_v1', JSON.stringify(savedPresets));
+} catch (e) {
+try {
+const liteList = savedPresets.map(p => Object.assign({}, p, {
+state: Object.assign({}, p.state, { bgImage: null })
+}));
+localStorage.setItem('metro_presets_v1', JSON.stringify(liteList));
+} catch (err) {}
+}
+}
+function loadPresetsFromStorage() {
+let list = Array.of();
+try {
+const raw = localStorage.getItem('metro_presets_v1');
+if (raw) {
+const parsed = JSON.parse(raw);
+if (Array.isArray(parsed)) list = parsed;
+}
+} catch (e) {}
+const withoutDemo = list.filter(p => p && p.id !== DEMO_PRESET_ID);
+savedPresets = Array.of(buildBuiltinDemoEntry()).concat(withoutDemo);
+persistPresets();
+}
+function registerPresetInSaves(name, targetState, targetSettings = null) {
+const cleanName = (name || 'Без названия').trim();
+const normalized = normalizeState(cloneData(targetState));
+const entry = {
+id: 'preset_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+name: cleanName,
+builtin: false,
+updatedAt: new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+settings: targetSettings ? cloneData(targetSettings) : cloneData(settings),
+state: normalized
+};
+const withoutDemo = savedPresets.filter(p => p && p.id !== DEMO_PRESET_ID && p.name !== cleanName);
+savedPresets = Array.of(buildBuiltinDemoEntry(), entry).concat(withoutDemo);
+persistPresets();
+renderSavesList();
+}
+function applyPresetToCanvas(presetId) {
+const found = savedPresets.find(p => p.id === presetId);
+if (!found) return;
+if (timelapse.active) stopTimelapse();
+saveSnapshot();
+state = normalizeState(cloneData(found.state));
+syncBgImageObject(state.bgImage);
+if (found.settings) {
+settings = Object.assign({}, DEFAULT_SETTINGS, found.settings);
+saveSettings();
+applySettingsToUI();
+}
+activeSt = null;
+clearRoute();
+clearRuler();
+persistState();
+updateLegendUI();
+draw();
+}
+function deletePresetFromSaves(presetId) {
+if (presetId === DEMO_PRESET_ID) return;
+savedPresets = savedPresets.filter(p => p.id !== presetId);
+persistPresets();
+renderSavesList();
+}
+function renderSavesList() {
+const container = document.getElementById('savesList') || document.getElementById('presetsList');
+if (!container) return;
+container.innerHTML = '';
+savedPresets.forEach((item, idx) => {
+const row = document.createElement('div');
+row.className = 'save-item preset-item';
+row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;background:var(--panel);';
+const info = document.createElement('div');
+info.style.cssText = 'text-align:left;overflow:hidden;flex:1;';
+const title = document.createElement('div');
+title.style.cssText = 'font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+title.textContent = (idx + 1) + '. ' + item.name;
+const meta = document.createElement('div');
+meta.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:2px;';
+const stCount = item.state && Array.isArray(item.state.stations) ? item.state.stations.length : 0;
+const segCount = item.state && Array.isArray(item.state.segments) ? item.state.segments.length : 0;
+meta.textContent = 'Станций: ' + stCount + ' • Перегонов: ' + segCount + ' • ' + (item.updatedAt || '');
+info.appendChild(title);
+info.appendChild(meta);
+const btns = document.createElement('div');
+btns.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
+const loadBtn = document.createElement('button');
+loadBtn.className = 'tool-btn active';
+loadBtn.textContent = '▶ Открыть';
+loadBtn.addEventListener('click', () => {
+applyPresetToCanvas(item.id);
+const modal = document.getElementById('savesModal') || document.getElementById('presetsModal');
+if (modal) modal.classList.add('hidden');
+const menu = document.getElementById('mainMenu');
+if (menu) menu.classList.add('hidden');
+});
+btns.appendChild(loadBtn);
+if (!item.builtin) {
+const delBtn = document.createElement('button');
+delBtn.className = 'tool-btn';
+delBtn.style.color = '#ef4444';
+delBtn.textContent = '🗑';
+delBtn.title = 'Удалить сохранение';
+delBtn.addEventListener('click', () => {
+if (confirm('Удалить сохранение «' + item.name + '»?')) {
+deletePresetFromSaves(item.id);
+}
+});
+btns.appendChild(delBtn);
+}
+row.appendChild(info);
+row.appendChild(btns);
+container.appendChild(row);
+});
+}
+window.loadPresetById = applyPresetToCanvas;
+window.saveCurrentAsPreset = customName => {
+const name = customName || prompt('Название сохранения:', 'Моя схема ' + savedPresets.length);
+if (name !== null && name.trim()) {
+registerPresetInSaves(name.trim(), state, settings);
+}
+};
 function resize() {
 canvas.width = innerWidth;
 canvas.height = innerHeight;
@@ -118,33 +299,44 @@ if (history.length > 40) history.shift();
 function saveSettings() {
 try { localStorage.setItem('metro_settings_v1', JSON.stringify(settings)); } catch (e) {}
 }
+// Инициализация при запуске: загружаем пресеты и ставим Демо при первом заходе
+loadPresetsFromStorage();
 try {
 const saved = localStorage.getItem('metro_v1');
 if (saved) {
 state = normalizeState(JSON.parse(saved));
 if (state.bgImage) syncBgImageObject(state.bgImage);
+} else {
+state = normalizeState(cloneData(DEMO_STATE));
+persistState();
 }
 const savedSet = localStorage.getItem('metro_settings_v1');
 if (savedSet) settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(savedSet));
-} catch (e) {}
+} catch (e) {
+state = normalizeState(cloneData(DEMO_STATE));
+}
 function applySettingsToUI() {
-document.getElementById('gridSizeInput').value = settings.gridSize;
-document.getElementById('gridSizeVal').textContent = settings.gridSize + ' px';
-document.getElementById('lineWidthInput').value = settings.lineWidth;
-document.getElementById('lineWidthVal').textContent = settings.lineWidth + ' px';
-document.getElementById('showGridInput').checked = settings.showGrid;
-document.getElementById('snapGridInput').checked = settings.snapToGrid;
-document.getElementById('animationsInput').checked = settings.animations;
-document.getElementById('stubStationsInput').checked = settings.stubStations;
-document.getElementById('lineBadgesInput').checked = settings.lineBadges;
-document.getElementById('riverBridgesInput').checked = settings.riverBridges;
-document.getElementById('smartLabelsInput').checked = settings.smartLabels;
-document.getElementById('darkThemeInput').checked = settings.darkTheme;
-document.getElementById('bgOpacityInput').value = settings.bgOpacity;
-document.getElementById('bgOpacityVal').textContent = Math.round(settings.bgOpacity * 100) + '%';
-document.getElementById('bgScaleInput').value = settings.bgScale;
-document.getElementById('bgScaleVal').textContent = Math.round(settings.bgScale * 100) + '%';
-document.getElementById('snapToggleBtn').classList.toggle('active', settings.snapToGrid);
+const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+const setChk = (id, chk) => { const el = document.getElementById(id); if (el) el.checked = chk; };
+setVal('gridSizeInput', settings.gridSize);
+setTxt('gridSizeVal', settings.gridSize + ' px');
+setVal('lineWidthInput', settings.lineWidth);
+setTxt('lineWidthVal', settings.lineWidth + ' px');
+setChk('showGridInput', settings.showGrid);
+setChk('snapGridInput', settings.snapToGrid);
+setChk('animationsInput', settings.animations);
+setChk('stubStationsInput', settings.stubStations);
+setChk('lineBadgesInput', settings.lineBadges);
+setChk('riverBridgesInput', settings.riverBridges);
+setChk('smartLabelsInput', settings.smartLabels);
+setChk('darkThemeInput', settings.darkTheme);
+setVal('bgOpacityInput', settings.bgOpacity);
+setTxt('bgOpacityVal', Math.round(settings.bgOpacity * 100) + '%');
+setVal('bgScaleInput', settings.bgScale);
+setTxt('bgScaleVal', Math.round(settings.bgScale * 100) + '%');
+const snapBtn = document.getElementById('snapToggleBtn');
+if (snapBtn) snapBtn.classList.toggle('active', settings.snapToGrid);
 document.body.classList.toggle('dark', settings.darkTheme);
 updateBgControlsUI();
 }
@@ -162,7 +354,8 @@ routeAnimRaf = null;
 routeStartId = null;
 activeRoute = null;
 routeAnimProgress = 1;
-document.getElementById('routePanel').classList.add('hidden');
+const panel = document.getElementById('routePanel');
+if (panel) panel.classList.add('hidden');
 }
 function startRouteAnimation() {
 if (routeAnimRaf) cancelAnimationFrame(routeAnimRaf);
@@ -223,7 +416,6 @@ items.push({ kind: 'segment', time: Number(seg.id) || 0, data: seg });
 state.transfers.forEach(tr => {
 items.push({ kind: 'transfer', time: Number(tr.id) || 0, data: tr });
 });
-// Добавляем одиночные станции без веток (если есть)
 const linkedStationIds = new Set();
 state.segments.forEach(s => { linkedStationIds.add(s.from); linkedStationIds.add(s.to); });
 state.transfers.forEach(t => { linkedStationIds.add(t.from); linkedStationIds.add(t.to); });
@@ -305,23 +497,14 @@ if (!timelapse.active) return;
 const dt = now - lastTime;
 lastTime = now;
 if (timelapse.stepIndex < timelapse.steps.length) {
-if (settings.animations) {
-timelapse.stepProgress += dt / stepDuration;
-if (timelapse.stepProgress >= 1) {
-timelapse.stepIndex++;
-timelapse.stepProgress = timelapse.stepIndex < timelapse.steps.length ? 0 : 1;
-}
-} else {
 timelapse.stepProgress += dt / stepDuration;
 if (timelapse.stepProgress >= 1) {
 timelapse.stepIndex++;
 timelapse.stepProgress = 0;
 }
-}
 draw();
 timelapse.rafId = requestAnimationFrame(tick);
 } else {
-// Держим финальный кадр 1.5 секунды (90 кадров), чтобы зритель рассмотрел готовую сеть
 timelapse.holdFrames++;
 draw();
 if (timelapse.holdFrames < 90) {
@@ -372,7 +555,6 @@ x: mt * mt * p0.x + 2 * mt * t * cp.x + t * t * p2.x,
 y: mt * mt * p0.y + 2 * mt * t * cp.y + t * t * p2.y
 };
 }
-// Рисует часть отрезка или квадратичной кривой Безье от 0 до progress (0..1)
 function tracePartialCurve(p0, cp, p2, progress) {
 const t = Math.max(0, Math.min(1, progress));
 ctx.moveTo(p0.x, p0.y);
@@ -386,7 +568,6 @@ if (t >= 1) {
 ctx.quadraticCurveTo(cp.x, cp.y, p2.x, p2.y);
 return p2;
 }
-// Алгоритм де Кастельжо для точной подрезки кривой Безье на доле t
 const q0 = { x: p0.x + (cp.x - p0.x) * t, y: p0.y + (cp.y - p0.y) * t };
 const q1 = { x: cp.x + (p2.x - cp.x) * t, y: cp.y + (p2.y - cp.y) * t };
 const r0 = { x: q0.x + (q1.x - q0.x) * t, y: q0.y + (q1.y - q0.y) * t };
@@ -439,9 +620,6 @@ const km = hops * BASE_HOP_KM;
 const metroMins = (km / AVG_METRO_SPEED_KMH) * 60;
 return { hops, km, metroMins };
 }
-// ==========================================
-// ЛЕГЕНДА И КОДЫ ЛИНИЙ
-// ==========================================
 const DEFAULT_COLOR_NAMES = new Map(Array.of(
 Array.of('#ef4444', 'Красная линия'),
 Array.of('#3b82f6', 'Синяя линия'),
@@ -484,6 +662,7 @@ draw();
 function updateLegendUI() {
 const panel = document.getElementById('legendPanel');
 const list = document.getElementById('legendList');
+if (!panel || !list) return;
 const lines = getActiveLines();
 if (!lines.length) {
 panel.classList.add('hidden');
@@ -524,9 +703,6 @@ draw();
 list.appendChild(item);
 });
 }
-// ==========================================
-// МАРШРУТИЗАТОР (BFS + ПЛАВНАЯ АНИМАЦИЯ ПРОЛЁТА)
-// ==========================================
 function buildAdjacencyGraph() {
 const adj = new Map();
 state.stations.forEach(st => adj.set(st.id, Array.of()));
@@ -576,6 +752,7 @@ function showRouteSummary(startSt, endSt, route) {
 const panel = document.getElementById('routePanel');
 const title = document.getElementById('routeTitle');
 const details = document.getElementById('routeDetails');
+if (!panel || !title || !details) return;
 panel.classList.remove('hidden');
 if (!route) {
 title.textContent = '🧭 ' + startSt.name + ' → ' + endSt.name;
@@ -615,9 +792,6 @@ title.textContent = '🧭 ' + startSt.name + ' → ' + endSt.name + ' (~' + tota
 const extra = transferNotes.length ? ' • ' + transferNotes.join(', ') : ' • без пересадок';
 details.textContent = 'Дистанция: ~' + distText + ' • Перегонов: ' + stops + ' • Пересадок: ' + transfersCount + extra;
 }
-// ==========================================
-// УМНЫЕ ПОДПИСИ И СТИЛИ СТАНЦИЙ
-// ==========================================
 function boxesOverlap(a, b) {
 return !(a.x2 < b.x1 || a.x1 > b.x2 || a.y2 < b.y1 || a.y1 > b.y2);
 }
@@ -709,9 +883,6 @@ best = { x: lx, y: ly, align: c.align, baseline: c.baseline, angle: c.angle, dir
 });
 return best;
 }
-// ==========================================
-// МОСТЫ ПРИ ПЕРЕСЕЧЕНИИ С РЕКАМИ
-// ==========================================
 function lineSegmentsIntersect(a, b, c, d) {
 const ccw = (p1, p2, p3) => (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x);
 if (ccw(a, c, d) === ccw(b, c, d) || ccw(a, b, c) === ccw(a, b, d)) return null;
@@ -768,9 +939,6 @@ ctx.restore();
 }
 });
 }
-// ==========================================
-// ОТРИСОВКА ПЕРЕХОДОВ, ЛИНЕЙКИ, МАСШТАБА И ХОЛСТА
-// ==========================================
 function drawTransferBridge(s1, s2, lWidth, dark, isPreview = false, progress = 1) {
 ctx.save();
 if (isPreview) ctx.globalAlpha = 0.6;
@@ -959,7 +1127,6 @@ function draw() {
 const dark = document.body.classList.contains('dark');
 const gSize = settings.gridSize;
 const lWidth = settings.lineWidth;
-// Определяем видимые элементы (полная схема или текущий кадр хронологии)
 let visibleSegs = state.segments;
 let visibleTrs = state.transfers;
 let visibleStations = state.stations;
@@ -998,7 +1165,6 @@ ctx.clearRect(0, 0, canvas.width, canvas.height);
 ctx.save();
 ctx.translate(cam.x, cam.y);
 ctx.scale(cam.zoom, cam.zoom);
-// 0. Фоновая подложка (всегда на месте, включая всю хронологию)
 if (bgImgObj && bgImgObj.complete && bgImgObj.naturalWidth > 0) {
 ctx.save();
 ctx.globalAlpha = settings.bgOpacity;
@@ -1019,7 +1185,6 @@ for (let x = sx; x < ex; x += gSize) { ctx.moveTo(x, sy); ctx.lineTo(x, ey); }
 for (let y = sy; y < ey; y += gSize) { ctx.moveTo(sx, y); ctx.lineTo(ex, y); }
 ctx.stroke();
 }
-// 1. Слой рек (всегда присутствует с первой секунды хронологии)
 ctx.lineCap = 'round';
 ctx.lineJoin = 'round';
 const riversList = curRiver ? state.rivers.concat(Array.of(curRiver)) : state.rivers;
@@ -1031,9 +1196,7 @@ ctx.beginPath();
 rv.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
 ctx.stroke();
 });
-// 1.5 Мосты поверх рек
 drawRiverBridges(lWidth, dark, visibleSegs);
-// 2. Слой пешеходных переходов
 visibleTrs.forEach(tr => {
 const s1 = state.stations.find(s => s.id === tr.from);
 const s2 = state.stations.find(s => s.id === tr.to);
@@ -1050,7 +1213,6 @@ if (!timelapse.active && tool === 'transfer' && activeSt) {
 const target = hitSt(mouseW) || mouseW;
 drawTransferBridge(activeSt, target, lWidth, dark, true, 1);
 }
-// 3. Слой веток метро
 const hasRoute = Boolean(!timelapse.active && activeRoute && activeRoute.edges.length > 0);
 const pairs = new Map();
 visibleSegs.forEach(g => {
@@ -1084,7 +1246,6 @@ ctx.fill();
 }
 ctx.restore();
 });
-// 3.2 Плавно строящийся перегон в режиме Таймлапс
 if (activeAnimStep && activeAnimStep.kind === 'segment') {
 const g = activeAnimStep.data;
 const s1 = state.stations.find(s => s.id === g.from);
@@ -1096,7 +1257,6 @@ ctx.lineWidth = lWidth;
 ctx.beginPath();
 const headPt = tracePartialCurve(s1, g.cp, s2, timelapse.stepProgress);
 ctx.stroke();
-// Светящаяся точка проходческого щита на острие строящейся ветки
 ctx.fillStyle = '#ffffff';
 ctx.beginPath();
 ctx.arc(headPt.x, headPt.y, lWidth * 0.45, 0, Math.PI * 2);
@@ -1104,7 +1264,6 @@ ctx.fill();
 ctx.restore();
 }
 }
-// 3.5 Плавная анимация пролёта найденного маршрута
 if (hasRoute) {
 const totalEdges = activeRoute.edges.length;
 const scaledProgress = routeAnimProgress * totalEdges;
@@ -1133,7 +1292,6 @@ if (edgeProgress < 1 || idx === totalEdges - 1) {
 trainHead = headPt;
 }
 });
-// Бегущий маркер поезда на острие маршрута
 if (trainHead && routeAnimProgress < 1) {
 ctx.save();
 ctx.fillStyle = '#ffffff';
@@ -1157,9 +1315,7 @@ ctx.lineTo(t.x, t.y);
 ctx.stroke();
 ctx.globalAlpha = 1;
 }
-// 3.8 Крупные кружки-маркеры на концах веток
 drawLineEndpointBadges(lWidth, dark, hasRoute, visibleSegs);
-// 4. Предварительный расчет умных подписей
 const stationRadii = new Map();
 const labelLayouts = new Map();
 const placedBoxes = Array.of();
@@ -1176,7 +1332,6 @@ const lbl = computeSmartLabel(st, r, placedBoxes, visibleSegs, visibleTrs);
 placedBoxes.push(lbl.box);
 labelLayouts.set(st.id, lbl);
 });
-// 5. Отрисовка станций (круги или "пеньки")
 visibleStations.forEach(st => {
 const cols = stColorsFromSegs(st.id, visibleSegs);
 const r = stationRadii.get(st.id) || lWidth + 1;
@@ -1244,7 +1399,6 @@ ctx.stroke();
 }
 ctx.restore();
 });
-// 6. Подписи станций
 visibleStations.forEach(st => {
 const lbl = labelLayouts.get(st.id);
 if (!lbl) return;
@@ -1269,28 +1423,54 @@ drawScaleBar(dark);
 drawTimelapseHUD(dark);
 }
 // ==========================================
-// УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ И СОБЫТИЯМИ
+// УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ, ПРЕСЕТАМИ И СОБЫТИЯМИ
 // ==========================================
 const mainMenu = document.getElementById('mainMenu');
 const settingsModal = document.getElementById('settingsModal');
-document.getElementById('playBtn').addEventListener('click', () => {
-mainMenu.classList.add('hidden');
+const savesModal = document.getElementById('savesModal') || document.getElementById('presetsModal');
+function openSavesWindow() {
+renderSavesList();
+if (savesModal) savesModal.classList.remove('hidden');
+}
+function closeSavesWindow() {
+if (savesModal) savesModal.classList.add('hidden');
+}
+Array.of('openSavesBtn', 'inGameSavesBtn', 'savesBtn', 'presetsBtn', 'openPresetsBtn').forEach(btnId => {
+const el = document.getElementById(btnId);
+if (el) el.addEventListener('click', openSavesWindow);
 });
-document.getElementById('backToMenuBtn').addEventListener('click', () => {
+Array.of('closeSavesBtn', 'closePresetsBtn').forEach(btnId => {
+const el = document.getElementById(btnId);
+if (el) el.addEventListener('click', closeSavesWindow);
+});
+Array.of('savePresetBtn', 'saveCurrentPresetBtn', 'addSaveBtn').forEach(btnId => {
+const el = document.getElementById(btnId);
+if (el) el.addEventListener('click', () => window.saveCurrentAsPreset());
+});
+const playBtn = document.getElementById('playBtn');
+if (playBtn) playBtn.addEventListener('click', () => {
+if (mainMenu) mainMenu.classList.add('hidden');
+});
+const backToMenuBtn = document.getElementById('backToMenuBtn');
+if (backToMenuBtn) backToMenuBtn.addEventListener('click', () => {
 if (timelapse.active) stopTimelapse();
 activeSt = null;
-mainMenu.classList.remove('hidden');
+if (mainMenu) mainMenu.classList.remove('hidden');
 });
-document.getElementById('openSettingsBtn').addEventListener('click', () => {
-settingsModal.classList.remove('hidden');
+const openSettingsBtn = document.getElementById('openSettingsBtn');
+if (openSettingsBtn) openSettingsBtn.addEventListener('click', () => {
+if (settingsModal) settingsModal.classList.remove('hidden');
 });
-document.getElementById('inGameSettingsBtn').addEventListener('click', () => {
-settingsModal.classList.remove('hidden');
+const inGameSettingsBtn = document.getElementById('inGameSettingsBtn');
+if (inGameSettingsBtn) inGameSettingsBtn.addEventListener('click', () => {
+if (settingsModal) settingsModal.classList.remove('hidden');
 });
-document.getElementById('closeSettingsBtn').addEventListener('click', () => {
-settingsModal.classList.add('hidden');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', () => {
+if (settingsModal) settingsModal.classList.add('hidden');
 });
-document.getElementById('resetSettingsBtn').addEventListener('click', () => {
+const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+if (resetSettingsBtn) resetSettingsBtn.addEventListener('click', () => {
 if (confirm('Сбросить все настройки холста до заводских значений?')) {
 settings = Object.assign({}, DEFAULT_SETTINGS);
 applySettingsToUI();
@@ -1298,16 +1478,15 @@ saveSettings();
 draw();
 }
 });
-document.getElementById('closeRouteBtn').addEventListener('click', () => {
+const closeRouteBtn = document.getElementById('closeRouteBtn');
+if (closeRouteBtn) closeRouteBtn.addEventListener('click', () => {
 clearRoute();
 draw();
 });
-document.getElementById('timelapseBtn').addEventListener('click', () => {
-startTimelapse(false);
-});
-document.getElementById('recordVideoBtn').addEventListener('click', () => {
-startTimelapse(true);
-});
+const timelapseBtn = document.getElementById('timelapseBtn');
+if (timelapseBtn) timelapseBtn.addEventListener('click', () => startTimelapse(false));
+const recordVideoBtn = document.getElementById('recordVideoBtn');
+if (recordVideoBtn) recordVideoBtn.addEventListener('click', () => startTimelapse(true));
 document.getElementById('gridSizeInput').addEventListener('input', e => {
 settings.gridSize = Number(e.target.value);
 document.getElementById('gridSizeVal').textContent = settings.gridSize + ' px';
@@ -1489,7 +1668,7 @@ if (!routeStartId || activeRoute) {
 clearRoute();
 routeStartId = h.id;
 const panel = document.getElementById('routePanel');
-panel.classList.remove('hidden');
+if (panel) panel.classList.remove('hidden');
 document.getElementById('routeTitle').textContent = '🧭 Старт: ' + h.name;
 document.getElementById('routeDetails').textContent = 'Нажмите на конечную станцию для построения маршрута...';
 draw();
@@ -1645,7 +1824,8 @@ toggleSnap();
 }
 if (e.code === 'Escape') {
 if (timelapse.active) stopTimelapse();
-else if (!settingsModal.classList.contains('hidden')) settingsModal.classList.add('hidden');
+else if (savesModal && !savesModal.classList.contains('hidden')) closeSavesWindow();
+else if (settingsModal && !settingsModal.classList.contains('hidden')) settingsModal.classList.add('hidden');
 else { activeSt = null; clearRoute(); clearRuler(); draw(); }
 }
 if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
@@ -1742,7 +1922,7 @@ draw();
 document.getElementById('exportJsonBtn').addEventListener('click', () => {
 const payload = {
 project: 'Metro Project',
-version: '1.0-beta',
+version: '1.1-beta-demo',
 exportedAt: new Date().toISOString(),
 settings,
 state
@@ -1776,11 +1956,15 @@ if (timelapse.active) stopTimelapse();
 saveSnapshot();
 state = normalizeState(nextState);
 syncBgImageObject(state.bgImage);
-if (parsed.settings) {
-settings = Object.assign({}, DEFAULT_SETTINGS, parsed.settings);
+const importedSettings = parsed.settings ? Object.assign({}, DEFAULT_SETTINGS, parsed.settings) : null;
+if (importedSettings) {
+settings = importedSettings;
 saveSettings();
 applySettingsToUI();
 }
+// Автоматически кидаем загруженный пресет во вкладку сохранений (после встроенного Демо)
+const presetTitle = parsed.name || file.name.replace(/.json$/i, '');
+registerPresetInSaves(presetTitle, state, importedSettings);
 activeSt = null;
 clearRoute();
 clearRuler();
@@ -1794,5 +1978,6 @@ alert('Ошибка при чтении JSON-файла.');
 reader.readAsText(file);
 });
 applySettingsToUI();
+renderSavesList();
 updateLegendUI();
 resize();
