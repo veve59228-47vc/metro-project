@@ -1,196 +1,168 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Metro Project — Конструктор схем метро</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Metro Project — Конструктор схем метро</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<div id="mainMenu" class="glass-overlay">
+<div class="glass-card">
+<div class="badge">Beta 2.0</div>
+<h1 class="menu-title">🚇 Metro Project</h1>
+<p class="menu-subtitle">Песочница для проектирования схем метрополитена</p>
+<div class="menu-buttons">
+<button id="playBtn" class="primary-btn">▶ Играть</button>
+<button id="openSavesBtn" class="secondary-btn">💾 Сохранения и пресеты</button>
+<button id="openSettingsBtn" class="secondary-btn">⚙ Настройки</button>
+</div>
+</div>
+</div>
 
-  <div id="mainMenu" class="glass-overlay">
-    <div class="glass-card">
-      <div class="badge">Beta 1.1 • Demo</div>
-      <h1 class="menu-title">🚇 Metro Project</h1>
-      <p class="menu-subtitle">Песочница для проектирования схем метрополитена</p>
-      <div class="menu-buttons">
-        <button id="playBtn" class="primary-btn">▶ Играть</button>
-        <button id="openSavesFromMenuBtn" class="secondary-btn">💾 Сохранения и пресеты</button>
-        <button id="openSettingsBtn" class="secondary-btn">⚙ Настройки</button>
-      </div>
-    </div>
-  </div>
+<div id="savesModal" class="glass-overlay hidden">
+<div class="glass-card saves-card">
+<div class="badge">💾 Сохранения и пресеты</div>
+<h2 class="settings-title">Сохранённые схемы</h2>
+<p class="saves-subtitle">Встроенный демо-город и все загруженные вами схемы</p>
+<div id="savesList" class="saves-list"></div>
+<div class="settings-footer">
+<button id="saveCurrentPresetBtn" class="secondary-btn">+ Сохранить текущую схему в список</button>
+<button id="closeSavesBtn" class="secondary-btn">Закрыть</button>
+</div>
+</div>
+</div>
 
-  <!-- Модальное окно сохранений и пресетов -->
-  <div id="savesModal" class="glass-overlay hidden">
-    <div class="glass-card saves-card">
-      <h2 class="settings-title">💾 Сохранения и пресеты</h2>
-      <p class="saves-subtitle">Встроенный демо-город и все загруженные вами схемы</p>
+<div id="settingsModal" class="glass-overlay hidden">
+<div class="glass-card settings-card">
+<div class="badge">⚙ Настройки холста</div>
+<h2 class="settings-title">Параметры отрисовки</h2>
+<div class="setting-item">
+<div class="setting-header">
+<label>Размер ячейки сетки</label>
+<span id="gridSizeVal">40 px</span>
+</div>
+<input id="gridSizeInput" type="range" min="20" max="80" step="5" value="40" />
+</div>
+<div class="setting-item">
+<div class="setting-header">
+<label>Толщина веток метро</label>
+<span id="lineWidthVal">8 px</span>
+</div>
+<input id="lineWidthInput" type="range" min="4" max="16" step="1" value="8" />
+</div>
+<div class="setting-item row">
+<label>Показывать сетку на фоне</label>
+<input id="showGridInput" type="checkbox" checked />
+</div>
+<div class="setting-item row">
+<label>Привязка к сетке и углам (45°/90°)</label>
+<input id="snapGridInput" type="checkbox" checked />
+</div>
+<div class="setting-item row">
+<label>Плавные анимации (маршрут и таймлапс)</label>
+<input id="animationsInput" type="checkbox" checked />
+</div>
+<div class="setting-item row">
+<label>«Пеньковый» стиль станций</label>
+<input id="stubStationsInput" type="checkbox" />
+</div>
+<div class="setting-item row">
+<label>Кружки-маркеры на концах линий</label>
+<input id="lineBadgesInput" type="checkbox" checked />
+</div>
+<div class="setting-item row">
+<label>Мосты при пересечении с реками</label>
+<input id="riverBridgesInput" type="checkbox" checked />
+</div>
+<div class="setting-item row">
+<label>Умные подписи (автоповорот 45°)</label>
+<input id="smartLabelsInput" type="checkbox" checked />
+</div>
+<div class="setting-item row">
+<label>Тёмная тема оформления</label>
+<input id="darkThemeInput" type="checkbox" />
+</div>
+<div class="bg-settings hidden" id="bgSettingsBlock">
+<div class="setting-item">
+<div class="setting-header">
+<label>Прозрачность подложки</label>
+<span id="bgOpacityVal">45%</span>
+</div>
+<input id="bgOpacityInput" type="range" min="0" max="100" step="5" value="45" />
+</div>
+<div class="setting-item">
+<div class="setting-header">
+<label>Масштаб подложки</label>
+<span id="bgScaleVal">100%</span>
+</div>
+<input id="bgScaleInput" type="range" min="50" max="200" step="10" value="100" />
+</div>
+<button id="removeBgBtn" class="secondary-btn">🗑 Убрать фоновое изображение</button>
+</div>
+<div class="settings-footer">
+<button id="uploadBgBtn" class="secondary-btn">🖼 Загрузить фоновое изображение</button>
+<input id="uploadBgInput" type="file" accept="image/*" style="display:none" />
+<button id="resetSettingsBtn" class="secondary-btn">↺ Сбросить настройки</button>
+<button id="closeSettingsBtn" class="primary-btn">Готово</button>
+</div>
+</div>
+</div>
 
-      <button id="saveCurrentPresetBtn" class="primary-btn" style="padding: 11px; font-size: 14px; margin-bottom: 14px;">
-        + Сохранить текущую схему в список
-      </button>
+<canvas id="canvas"></canvas>
 
-      <div id="savesList" class="saves-list"></div>
+<div class="toolbar">
+<button class="tool-btn" id="backToMenuBtn">☰ Меню</button>
+<div class="divider"></div>
+<button class="tool-btn active" data-tool="line">🚇 Ветка / Станция</button>
+<button class="tool-btn" data-tool="transfer">🚶 Переход</button>
+<button class="tool-btn" data-tool="route">🧭 Маршрут</button>
+<button class="tool-btn" data-tool="ruler">📏 Линейка</button>
+<button class="tool-btn" data-tool="river">🌊 Река</button>
+<button class="tool-btn" data-tool="move">✋ Перемещение</button>
+<button class="tool-btn" data-tool="erase">🗑 Ластик</button>
+<div class="divider"></div>
+<button class="tool-btn" id="snapToggleBtn">🧲 Сетка</button>
+<button class="tool-btn" id="undoBtn">↩ Назад</button>
+<button class="tool-btn" id="inGameSettingsBtn">⚙</button>
+<div class="divider"></div>
+<div class="colors">
+<div class="color-dot active" data-color="#ef4444" style="background:#ef4444"></div>
+<div class="color-dot" data-color="#3b82f6" style="background:#3b82f6"></div>
+<div class="color-dot" data-color="#22c55e" style="background:#22c55e"></div>
+<div class="color-dot" data-color="#eab308" style="background:#eab308"></div>
+<div class="color-dot" data-color="#a855f7" style="background:#a855f7"></div>
+<div class="color-dot" data-color="#ec4899" style="background:#ec4899"></div>
+<input type="color" id="customColor" value="#ef4444" />
+</div>
+</div>
 
-      <button id="closeSavesBtn" class="secondary-btn" style="margin-top: 14px; padding: 11px;">Закрыть</button>
-    </div>
-  </div>
+<div id="legendPanel" class="legend-panel hidden">
+<div class="legend-header">🗺 Легенда линий</div>
+<div id="legendList" class="legend-list"></div>
+</div>
 
-  <!-- Модальное окно настроек -->
-  <div id="settingsModal" class="glass-overlay hidden">
-    <div class="glass-card settings-card">
-      <h2 class="settings-title">⚙ Настройки холста</h2>
+<div id="routePanel" class="route-panel hidden">
+<div class="route-header">
+<span id="routeTitle">🧭 Маршрут</span>
+<button id="closeRouteBtn" class="route-close">✕</button>
+</div>
+<div id="routeDetails" class="route-details">Клик — станция/ветка. Перемещение — станция или дуга. Сейвы — демо-город и загруженные пресеты.</div>
+</div>
 
-      <div class="setting-item">
-        <div class="setting-header">
-          <span>Размер ячейки сетки</span>
-          <strong id="gridSizeVal">40 px</strong>
-        </div>
-        <input type="range" id="gridSizeInput" min="20" max="80" step="5" value="40">
-      </div>
+<div class="bottom-bar">
+<div class="hint-box">💾 Сейвы • 🎬 Таймлапс • ⏺ Видео</div>
+<div class="actions-box">
+<button id="timelapseBtn" class="tool-btn">🎬 Таймлапс</button>
+<button id="recordVideoBtn" class="tool-btn">⏺ Видео</button>
+<button id="exportPngBtn" class="tool-btn">🖼 PNG</button>
+<button id="exportJsonBtn" class="tool-btn">📤 JSON</button>
+<button id="importJsonBtn" class="tool-btn">📂 Импорт</button>
+<input id="importJsonInput" type="file" accept=".json" style="display:none" />
+<button id="clearBtn" class="tool-btn">🧹 Очистить</button>
+</div>
+</div>
 
-      <div class="setting-item">
-        <div class="setting-header">
-          <span>Толщина веток метро</span>
-          <strong id="lineWidthVal">8 px</strong>
-        </div>
-        <input type="range" id="lineWidthInput" min="4" max="16" step="1" value="8">
-      </div>
-
-      <div class="setting-item row">
-        <span>Показывать сетку на фоне</span>
-        <input type="checkbox" id="showGridInput" checked>
-      </div>
-
-      <div class="setting-item row">
-        <span>Привязка к сетке и углам (45°/90°)</span>
-        <input type="checkbox" id="snapGridInput" checked>
-      </div>
-
-      <div class="setting-item row">
-        <span>Плавные анимации (маршрут и таймлапс)</span>
-        <input type="checkbox" id="animationsInput" checked>
-      </div>
-
-      <div class="setting-item row">
-        <span>«Пеньковый» стиль станций</span>
-        <input type="checkbox" id="stubStationsInput">
-      </div>
-
-      <div class="setting-item row">
-        <span>Кружки-маркеры на концах линий</span>
-        <input type="checkbox" id="lineBadgesInput" checked>
-      </div>
-
-      <div class="setting-item row">
-        <span>Мосты при пересечении с реками</span>
-        <input type="checkbox" id="riverBridgesInput" checked>
-      </div>
-
-      <div class="setting-item row">
-        <span>Умные подписи (автоповорот 45°)</span>
-        <input type="checkbox" id="smartLabelsInput" checked>
-      </div>
-
-      <div class="setting-item row">
-        <span>Тёмная тема оформления</span>
-        <input type="checkbox" id="darkThemeInput">
-      </div>
-
-      <div id="bgSettingsBlock" class="bg-settings hidden">
-        <div class="setting-item">
-          <div class="setting-header">
-            <span>Прозрачность подложки</span>
-            <strong id="bgOpacityVal">45%</strong>
-          </div>
-          <input type="range" id="bgOpacityInput" min="0.1" max="1" step="0.05" value="0.45">
-        </div>
-
-        <div class="setting-item">
-          <div class="setting-header">
-            <span>Масштаб подложки</span>
-            <strong id="bgScaleVal">100%</strong>
-          </div>
-          <input type="range" id="bgScaleInput" min="0.2" max="3" step="0.05" value="1">
-        </div>
-
-        <button id="removeBgBtn" class="secondary-btn" style="color:#ef4444; padding: 10px; font-size: 14px;">
-          🗑 Убрать фоновое изображение
-        </button>
-      </div>
-
-      <div class="settings-footer">
-        <button id="resetSettingsBtn" class="secondary-btn" style="padding: 11px; font-size: 14px;">↺ Сбросить настройки</button>
-        <button id="closeSettingsBtn" class="primary-btn">Готово</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="toolbar">
-    <button class="tool-btn" id="backToMenuBtn" title="В главное меню">☰ Меню</button>
-    <div class="divider"></div>
-    <button class="tool-btn active" data-tool="line">🚇 Ветка / Станция</button>
-    <button class="tool-btn" data-tool="transfer">🚶 Переход</button>
-    <button class="tool-btn" data-tool="route">🧭 Маршрут</button>
-    <button class="tool-btn" data-tool="ruler">📏 Линейка</button>
-    <button class="tool-btn" data-tool="river">🌊 Река</button>
-    <button class="tool-btn" data-tool="move">✋ Перемещение</button>
-    <button class="tool-btn" data-tool="erase">🗑 Ластик</button>
-    <div class="divider"></div>
-    <div class="colors">
-      <div class="color-dot active" data-color="#ef4444" style="background:#ef4444" title="Красная"></div>
-      <div class="color-dot" data-color="#3b82f6" style="background:#3b82f6" title="Синяя"></div>
-      <div class="color-dot" data-color="#22c55e" style="background:#22c55e" title="Зелёная"></div>
-      <div class="color-dot" data-color="#eab308" style="background:#eab308" title="Жёлтая"></div>
-      <div class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Фиолетовая"></div>
-      <div class="color-dot" data-color="#ec4899" style="background:#ec4899" title="Розовая"></div>
-      <input type="color" id="customColor" value="#ec4899" title="Свой цвет">
-    </div>
-    <div class="divider"></div>
-    <button class="tool-btn active" id="snapToggleBtn" title="Привязка к сетке и углам (G)">🧲 Сетка</button>
-    <button class="tool-btn" id="undoBtn" title="Отменить (Ctrl+Z)">↩ Назад</button>
-    <button class="tool-btn" id="inGameSettingsBtn" title="Настройки">⚙</button>
-  </div>
-
-  <div id="legendPanel" class="legend-panel hidden">
-    <div class="legend-header">
-      <span>🗺 Легенда линий</span>
-    </div>
-    <div id="legendList" class="legend-list"></div>
-  </div>
-
-  <div id="routePanel" class="route-panel hidden">
-    <div class="route-header">
-      <strong id="routeTitle">🧭 Маршрут</strong>
-      <button id="closeRouteBtn" class="route-close" title="Сбросить маршрут">✕</button>
-    </div>
-    <div id="routeDetails" class="route-details"></div>
-  </div>
-
-  <div class="bottom-bar">
-    <div class="hint-box" id="hintBox">
-      Клик — станция/ветка. Перемещение — станция или дуга. Сейвы — демо-город и загруженные пресеты.
-    </div>
-    <div class="actions-box">
-      <button class="tool-btn" id="openSavesBtn" title="Библиотека сохранений и загруженных пресетов">💾 Сейвы</button>
-      <div class="divider"></div>
-      <button class="tool-btn" id="timelapseBtn" title="Запустить анимацию-хронологию строительства">🎬 Таймлапс</button>
-      <button class="tool-btn" id="recordVideoBtn" title="Записать таймлапс в видео .webm">⏺ Видео</button>
-      <div class="divider"></div>
-      <button class="tool-btn" id="uploadBgBtn" title="Загрузить карту или фото на фон">🗺 Фон</button>
-      <input type="file" id="uploadBgInput" accept="image/*" style="display:none">
-      <div class="divider"></div>
-      <button class="tool-btn" id="exportPngBtn" title="Скачать картинку">🖼 PNG</button>
-      <button class="tool-btn" id="exportJsonBtn" title="Сохранить проект в JSON">📤 JSON</button>
-      <button class="tool-btn" id="importJsonBtn" title="Загрузить проект из JSON">📂 Импорт</button>
-      <input type="file" id="importJsonInput" accept=".json,application/json" style="display:none">
-      <div class="divider"></div>
-      <button class="tool-btn" id="clearBtn" style="color:#ef4444">🧹 Очистить</button>
-    </div>
-  </div>
-
-  <canvas id="canvas"></canvas>
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
