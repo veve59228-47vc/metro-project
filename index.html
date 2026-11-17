@@ -8,10 +8,9 @@
 </head>
 <body>
 
-  <!-- Стартовое меню (Glassmorphism) -->
   <div id="mainMenu" class="glass-overlay">
     <div class="glass-card">
-      <div class="badge">Alpha 0.3</div>
+      <div class="badge">Beta 1.0</div>
       <h1 class="menu-title">🚇 Metro Project</h1>
       <p class="menu-subtitle">Песочница для проектирования схем метрополитена</p>
       <div class="menu-buttons">
@@ -21,7 +20,6 @@
     </div>
   </div>
 
-  <!-- Модальное окно настроек -->
   <div id="settingsModal" class="glass-overlay hidden">
     <div class="glass-card settings-card">
       <h2 class="settings-title">⚙ Настройки холста</h2>
@@ -53,6 +51,26 @@
       </div>
 
       <div class="setting-item row">
+        <span>Плавные анимации (маршрут и таймлапс)</span>
+        <input type="checkbox" id="animationsInput" checked>
+      </div>
+
+      <div class="setting-item row">
+        <span>«Пеньковый» стиль станций</span>
+        <input type="checkbox" id="stubStationsInput">
+      </div>
+
+      <div class="setting-item row">
+        <span>Кружки-маркеры на концах линий</span>
+        <input type="checkbox" id="lineBadgesInput" checked>
+      </div>
+
+      <div class="setting-item row">
+        <span>Мосты при пересечении с реками</span>
+        <input type="checkbox" id="riverBridgesInput" checked>
+      </div>
+
+      <div class="setting-item row">
         <span>Умные подписи (автоповорот 45°)</span>
         <input type="checkbox" id="smartLabelsInput" checked>
       </div>
@@ -62,17 +80,42 @@
         <input type="checkbox" id="darkThemeInput">
       </div>
 
-      <button id="closeSettingsBtn" class="primary-btn" style="margin-top: 12px;">Готово</button>
+      <div id="bgSettingsBlock" class="bg-settings hidden">
+        <div class="setting-item">
+          <div class="setting-header">
+            <span>Прозрачность подложки</span>
+            <strong id="bgOpacityVal">45%</strong>
+          </div>
+          <input type="range" id="bgOpacityInput" min="0.1" max="1" step="0.05" value="0.45">
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-header">
+            <span>Масштаб подложки</span>
+            <strong id="bgScaleVal">100%</strong>
+          </div>
+          <input type="range" id="bgScaleInput" min="0.2" max="3" step="0.05" value="1">
+        </div>
+
+        <button id="removeBgBtn" class="secondary-btn" style="color:#ef4444; padding: 10px; font-size: 14px;">
+          🗑 Убрать фоновое изображение
+        </button>
+      </div>
+
+      <div class="settings-footer">
+        <button id="resetSettingsBtn" class="secondary-btn" style="padding: 11px; font-size: 14px;">↺ Сбросить настройки</button>
+        <button id="closeSettingsBtn" class="primary-btn">Готово</button>
+      </div>
     </div>
   </div>
 
-  <!-- Верхняя панель инструментов -->
   <div class="toolbar">
     <button class="tool-btn" id="backToMenuBtn" title="В главное меню">☰ Меню</button>
     <div class="divider"></div>
     <button class="tool-btn active" data-tool="line">🚇 Ветка / Станция</button>
     <button class="tool-btn" data-tool="transfer">🚶 Переход</button>
     <button class="tool-btn" data-tool="route">🧭 Маршрут</button>
+    <button class="tool-btn" data-tool="ruler">📏 Линейка</button>
     <button class="tool-btn" data-tool="river">🌊 Река</button>
     <button class="tool-btn" data-tool="move">✋ Перемещение</button>
     <button class="tool-btn" data-tool="erase">🗑 Ластик</button>
@@ -92,7 +135,6 @@
     <button class="tool-btn" id="inGameSettingsBtn" title="Настройки">⚙</button>
   </div>
 
-  <!-- Легенда линий (левый верхний угол) -->
   <div id="legendPanel" class="legend-panel hidden">
     <div class="legend-header">
       <span>🗺 Легенда линий</span>
@@ -100,7 +142,6 @@
     <div id="legendList" class="legend-list"></div>
   </div>
 
-  <!-- Карточка результата маршрутизатора -->
   <div id="routePanel" class="route-panel hidden">
     <div class="route-header">
       <strong id="routeTitle">🧭 Маршрут</strong>
@@ -109,12 +150,17 @@
     <div id="routeDetails" class="route-details"></div>
   </div>
 
-  <!-- Нижняя панель подсказок и экспорта -->
   <div class="bottom-bar">
     <div class="hint-box" id="hintBox">
-      Клик — станция/ветка. Переход — клик по двум станциям. Маршрут — старт и финиш. Двойной клик — имя.
+      Клик — станция/ветка. Перемещение — станция или дуга (2x клик — выпрямить). Таймлапс — хронология строительства.
     </div>
     <div class="actions-box">
+      <button class="tool-btn" id="timelapseBtn" title="Запустить анимацию-хронологию строительства">🎬 Таймлапс</button>
+      <button class="tool-btn" id="recordVideoBtn" title="Записать таймлапс в видео .webm">⏺ Видео</button>
+      <div class="divider"></div>
+      <button class="tool-btn" id="uploadBgBtn" title="Загрузить карту или фото на фон">🗺 Фон</button>
+      <input type="file" id="uploadBgInput" accept="image/*" style="display:none">
+      <div class="divider"></div>
       <button class="tool-btn" id="exportPngBtn" title="Скачать картинку">🖼 PNG</button>
       <button class="tool-btn" id="exportJsonBtn" title="Сохранить проект в JSON">💾 JSON</button>
       <button class="tool-btn" id="importJsonBtn" title="Загрузить проект из JSON">📂 Импорт</button>

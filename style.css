@@ -72,9 +72,11 @@ canvas {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
-  padding: 36px 42px;
+  padding: 32px 38px;
   width: 90%;
-  max-width: 420px;
+  max-width: 430px;
+  max-height: 90vh;
+  overflow-y: auto;
   text-align: center;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
@@ -139,10 +141,10 @@ canvas {
 
 /* Настройки */
 .settings-card { text-align: left; }
-.settings-title { font-size: 22px; margin-bottom: 20px; text-align: center; }
+.settings-title { font-size: 22px; margin-bottom: 18px; text-align: center; }
 
 .setting-item {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -155,6 +157,23 @@ canvas {
   align-items: center;
   padding: 8px 0;
   border-top: 1px solid var(--glass-border);
+}
+
+.bg-settings {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+.bg-settings.hidden {
+  display: none;
+}
+
+.settings-footer {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .setting-header {
