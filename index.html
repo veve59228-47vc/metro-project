@@ -10,16 +10,34 @@
 
   <div id="mainMenu" class="glass-overlay">
     <div class="glass-card">
-      <div class="badge">Beta 1.0</div>
+      <div class="badge">Beta 1.1 • Demo</div>
       <h1 class="menu-title">🚇 Metro Project</h1>
       <p class="menu-subtitle">Песочница для проектирования схем метрополитена</p>
       <div class="menu-buttons">
         <button id="playBtn" class="primary-btn">▶ Играть</button>
+        <button id="openSavesFromMenuBtn" class="secondary-btn">💾 Сохранения и пресеты</button>
         <button id="openSettingsBtn" class="secondary-btn">⚙ Настройки</button>
       </div>
     </div>
   </div>
 
+  <!-- Модальное окно сохранений и пресетов -->
+  <div id="savesModal" class="glass-overlay hidden">
+    <div class="glass-card saves-card">
+      <h2 class="settings-title">💾 Сохранения и пресеты</h2>
+      <p class="saves-subtitle">Встроенный демо-город и все загруженные вами схемы</p>
+
+      <button id="saveCurrentPresetBtn" class="primary-btn" style="padding: 11px; font-size: 14px; margin-bottom: 14px;">
+        + Сохранить текущую схему в список
+      </button>
+
+      <div id="savesList" class="saves-list"></div>
+
+      <button id="closeSavesBtn" class="secondary-btn" style="margin-top: 14px; padding: 11px;">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно настроек -->
   <div id="settingsModal" class="glass-overlay hidden">
     <div class="glass-card settings-card">
       <h2 class="settings-title">⚙ Настройки холста</h2>
@@ -152,9 +170,11 @@
 
   <div class="bottom-bar">
     <div class="hint-box" id="hintBox">
-      Клик — станция/ветка. Перемещение — станция или дуга (2x клик — выпрямить). Таймлапс — хронология строительства.
+      Клик — станция/ветка. Перемещение — станция или дуга. Сейвы — демо-город и загруженные пресеты.
     </div>
     <div class="actions-box">
+      <button class="tool-btn" id="openSavesBtn" title="Библиотека сохранений и загруженных пресетов">💾 Сейвы</button>
+      <div class="divider"></div>
       <button class="tool-btn" id="timelapseBtn" title="Запустить анимацию-хронологию строительства">🎬 Таймлапс</button>
       <button class="tool-btn" id="recordVideoBtn" title="Записать таймлапс в видео .webm">⏺ Видео</button>
       <div class="divider"></div>
@@ -162,7 +182,7 @@
       <input type="file" id="uploadBgInput" accept="image/*" style="display:none">
       <div class="divider"></div>
       <button class="tool-btn" id="exportPngBtn" title="Скачать картинку">🖼 PNG</button>
-      <button class="tool-btn" id="exportJsonBtn" title="Сохранить проект в JSON">💾 JSON</button>
+      <button class="tool-btn" id="exportJsonBtn" title="Сохранить проект в JSON">📤 JSON</button>
       <button class="tool-btn" id="importJsonBtn" title="Загрузить проект из JSON">📂 Импорт</button>
       <input type="file" id="importJsonInput" accept=".json,application/json" style="display:none">
       <div class="divider"></div>
