@@ -1,6 +1,6 @@
 # 🚇 Metro Project — Beta
 
-**[▶ Играть онлайн](https://veve59228-47vc.github.io/metro-project/)**
+**[▶ Играть онлайн]([https://veve59228-47vc.github.io/metro-project/](https://veve59228-47vc.github.io/metro-project/))**
 
 Минималистичный веб-конструктор для проектирования схем метрополитена в браузере.
 
